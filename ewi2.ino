@@ -57,19 +57,16 @@ float bendfactor = 1.0;
 
 void setup() {
   float amp_gain = 1.0;
-  // put your setup code here, to run once:
   Serial.begin(115200);
   sgtl5000_1.enable();
   sgtl5000_1.volume(1.0);
   sgtl5000_1.audioProcessorDisable();
   AudioMemory(120);
-  //delay(1500);
   Serial.println("USB Host On...");
   myusb.begin();
   midi1.setHandleNoteOn(myNoteOn);
   midi1.setHandleAfterTouch(myAfterTouch);
   midi1.setHandlePitchChange(myPitchChange);
-  //waveshape1.shape(wave_shape, 513);
   float bereich = 4.0;
   float inc = bereich / 32769.0;
   float j = bereich / 2 - bereich;
