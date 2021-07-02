@@ -54,6 +54,8 @@ short delayBufferL[128 * AUDIO_BLOCK_SAMPLES];
 short delayBufferR[144 * AUDIO_BLOCK_SAMPLES];
 int bendrange = 2;
 float bendfactor = 1.0;
+int transposition[7] = { 0, -2, 10, 3, -9, 12, -12 };
+int transp = 0;
 
 void setup() {
   float amp_gain = 1.0;
@@ -67,7 +69,7 @@ void setup() {
   midi1.setHandleNoteOn(myNoteOn);
   midi1.setHandleAfterTouch(myAfterTouch);
   midi1.setHandlePitchChange(myPitchChange);
-  float bereich = 4.0;
+  float bereich = 2.0;
   float inc = bereich / 32769.0;
   float j = bereich / 2 - bereich;
   for (int i = 0; i <= 32768; i++) {
@@ -109,7 +111,8 @@ void myNoteOn(byte channel, byte note, byte velocity) {
   Serial.print(note, DEC);
   Serial.print(", velocity=");
   Serial.println(velocity, DEC);
-  freq = 440.0 * powf(2.0, (float)(note - 69) * 0.08333333);
+  if (note == 99) toggleTransposition();
+  freq = 440.0 * powf(2.0, (float)(note - 69 + transposition[transp]) * 0.08333333);
   setOSC(bendfactor < 1);
 }
 
@@ -147,5 +150,13 @@ void setOSC(bool voicing) {
     waveform2.frequency(freq * 0.749153538438); // perfect fourth down
     waveform3.frequency(freq * 0.561231024154); // perfect ninth down
     waveform4.frequency(freq / 2);              // octave down
+  }
+}
+
+void toggleTransposition () {
+  if (transp >= 6) {
+    transp = 0;
+  } else {
+    transp++;
   }
 }
