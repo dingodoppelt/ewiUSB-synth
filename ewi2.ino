@@ -50,8 +50,10 @@ USBHost myusb;
 MIDIDevice midi1(myusb);
 float freq = 440;
 float waveshape[32769];
-short delayBufferL[128*AUDIO_BLOCK_SAMPLES];
-short delayBufferR[144*AUDIO_BLOCK_SAMPLES];
+short delayBufferL[128 * AUDIO_BLOCK_SAMPLES];
+short delayBufferR[144 * AUDIO_BLOCK_SAMPLES];
+int bendrange = 2;
+float bendfactor = 1.0;
 
 void setup() {
   float amp_gain = 1.0;
@@ -63,15 +65,15 @@ void setup() {
   AudioMemory(120);
   //delay(1500);
   Serial.println("USB Host On...");
-  myusb.begin();  
+  myusb.begin();
   midi1.setHandleNoteOn(myNoteOn);
   midi1.setHandleAfterTouch(myAfterTouch);
   midi1.setHandlePitchChange(myPitchChange);
   //waveshape1.shape(wave_shape, 513);
   float bereich = 4.0;
-  float inc = bereich/32769.0;
-  float j = bereich/2 - bereich;
-  for(int i = 0; i <= 32768; i++){
+  float inc = bereich / 32769.0;
+  float j = bereich / 2 - bereich;
+  for (int i = 0; i <= 32768; i++) {
     //waveshape[i] = j/abs(j+1.0);
     waveshape[i] = tanh(j);
     j = j + inc;
@@ -79,12 +81,12 @@ void setup() {
   waveshape1.shape(waveshape, 32769);
   filter1.frequency(100);
   filter1.octaveControl(7);
-  filter1.resonance(1);
+  filter1.resonance(0.7);
   breath.amplitude(0.0);
-  mixer2.gain(0,1.0*amp_gain);
-  mixer2.gain(1,0*amp_gain);
-  mixer2.gain(2,0*amp_gain);
-  mixer2.gain(3,0*amp_gain);
+  mixer2.gain(0, 1.0 * amp_gain);
+  mixer2.gain(1, 0.7 * amp_gain);
+  mixer2.gain(2, 0.7 * amp_gain);
+  mixer2.gain(3, 0.7 * amp_gain);
   mixerL.gain(0, 0.5);
   mixerL.gain(1, 0.15);
   mixerR.gain(0, 0.5);
@@ -93,8 +95,8 @@ void setup() {
   waveform2.begin(1.0, freq, WAVEFORM_TRIANGLE_VARIABLE);
   waveform3.begin(1.0, freq, WAVEFORM_TRIANGLE_VARIABLE);
   waveform4.begin(1.0, freq, WAVEFORM_TRIANGLE_VARIABLE);
-  chorus1.begin(delayBufferL,24*AUDIO_BLOCK_SAMPLES,2);
-  chorus2.begin(delayBufferR,16*AUDIO_BLOCK_SAMPLES,2);
+  chorus1.begin(delayBufferL, 24 * AUDIO_BLOCK_SAMPLES, 2);
+  chorus2.begin(delayBufferR, 16 * AUDIO_BLOCK_SAMPLES, 2);
 }
 
 
@@ -111,19 +113,20 @@ void myNoteOn(byte channel, byte note, byte velocity) {
   Serial.print(", velocity=");
   Serial.println(velocity, DEC);
   freq = 440.0 * powf(2.0, (float)(note - 69) * 0.08333333);
-  waveform1.frequency(freq);
-  waveform2.frequency(freq);
-  waveform3.frequency(freq);
-  waveform4.frequency(freq);
+  setOSC(bendfactor < 1);
 }
 
 void myAfterTouch(byte channel, byte pressure) {
   Serial.print("Aftertouch, ch=");
   Serial.print(channel, DEC);
   Serial.print(", pressure=");
-  Serial.println(pow((float)pressure / 127.00, 3), 3);
-  breath.amplitude(pow((float)pressure / 127.00, 3), 3);
-  waveform1.pulseWidth((float)pressure / 127.00);
+  float pressVal = (float)pressure / 127.00;
+  Serial.println(pow(pressVal, 3), 3);
+  breath.amplitude(pow(pressVal, 3), 3);
+  waveform1.pulseWidth(pressVal);
+  waveform2.pulseWidth(pressVal);
+  waveform3.pulseWidth(pressVal);
+  waveform4.pulseWidth(pressVal);
 }
 
 void myPitchChange(byte channel, int pitch) {
@@ -131,4 +134,21 @@ void myPitchChange(byte channel, int pitch) {
   Serial.print(channel, DEC);
   Serial.print(", pitch=");
   Serial.println(pitch, DEC);
+  float bendF = (((float)pitch / 8192) * bendrange);
+  bendfactor = pow(2, bendF / 12);
+  setOSC(bendfactor < 1);
+}
+
+void setOSC(bool voicing) {
+  if (voicing == 0) {
+    waveform1.frequency(freq * bendfactor);
+    waveform2.frequency(freq * bendfactor);
+    waveform3.frequency(freq * bendfactor);
+    waveform4.frequency(freq * bendfactor);
+  } else {
+    waveform1.frequency(freq);
+    waveform2.frequency(freq * 0.749153538438); // perfect fourth down
+    waveform3.frequency(freq * 0.561231024154); // perfect ninth down
+    waveform4.frequency(freq / 2);              // octave down
+  }
 }
