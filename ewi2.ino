@@ -148,7 +148,7 @@ void setOSC(bool voicing) {
   } else {
     waveform1.frequency(freq);
     waveform2.frequency(freq * 0.749153538438); // perfect fourth down
-    waveform3.frequency(freq * 0.561231024154); // perfect ninth down
+    waveform3.frequency(freq * 0.561231024154); // major ninth down
     waveform4.frequency(freq / 2);              // octave down
   }
 }
