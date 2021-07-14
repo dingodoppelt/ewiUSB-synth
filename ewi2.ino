@@ -56,6 +56,12 @@ int bendrange = 2;
 float bendfactor = 1.0;
 int transposition[7] = { 0, -2, 10, 3, -9, 12, -12 };
 int transp = 0;
+float LFOphase = 0.0;
+unsigned int msec = 0;
+float LFOfreq = 10.0;
+float LFOfactor = 1.0;
+int LFOrange = 6;
+int Fs = 1e3;
 
 void setup() {
   float amp_gain = 1.0;
@@ -101,8 +107,20 @@ void setup() {
 
 void loop() {
   midi1.read();
+  //LFOUpdate();  
 }
 
+void LFOUpdate() {
+  if (micros() - msec >= Fs) {
+    msec = micros();
+    LFOphase += 1/Fs;
+  }
+  if (LFOphase > 1) {
+    LFOphase -= 1;  
+  }
+  LFOfactor = pow(2, (sin(LFOfreq*2.0*PI*LFOphase)*LFOrange)/12);
+  setOSC(bendfactor < 1);
+}
 
 void myNoteOn(byte channel, byte note, byte velocity) {
   Serial.print("Note On, ch=");
@@ -141,10 +159,10 @@ void myPitchChange(byte channel, int pitch) {
 
 void setOSC(bool voicing) {
   if (voicing == 0) {
-    waveform1.frequency(freq * bendfactor);
-    waveform2.frequency(freq * bendfactor);
-    waveform3.frequency(freq * bendfactor);
-    waveform4.frequency(freq * bendfactor);
+    waveform1.frequency(freq * bendfactor * LFOfactor);
+    waveform2.frequency(freq * bendfactor * LFOfactor);
+    waveform3.frequency(freq * bendfactor * LFOfactor);
+    waveform4.frequency(freq * bendfactor * LFOfactor);
   } else {
     waveform1.frequency(freq);
     waveform2.frequency(freq * 0.749153538438); // perfect fourth down
