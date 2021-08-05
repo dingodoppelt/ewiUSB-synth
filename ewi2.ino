@@ -60,8 +60,9 @@ float LFOphase = 0.0;
 unsigned int msec = 0;
 float LFOfreq = 10.0;
 float LFOfactor = 1.0;
-int LFOrange = 6;
-int Fs = 1e3;
+int LFOrange = 3;
+float Fs = 1e3;
+float biteSensor = 0.0;
 
 void setup() {
   float amp_gain = 1.0;
@@ -75,6 +76,7 @@ void setup() {
   midi1.setHandleNoteOn(myNoteOn);
   midi1.setHandleAfterTouch(myAfterTouch);
   midi1.setHandlePitchChange(myPitchChange);
+  midi1.setHandleControlChange(myControlChange);
   float bereich = 2.0;
   float inc = bereich / 32769.0;
   float j = bereich / 2 - bereich;
@@ -107,39 +109,40 @@ void setup() {
 
 void loop() {
   midi1.read();
-  //LFOUpdate();  
+  LFOUpdate();  
 }
 
 void LFOUpdate() {
-  if (micros() - msec >= Fs) {
-    msec = micros();
+  unsigned long currentMicros = micros();
+  if (currentMicros - msec >= Fs) {
+    msec = currentMicros;
     LFOphase += 1/Fs;
   }
   if (LFOphase > 1) {
     LFOphase -= 1;  
   }
-  LFOfactor = pow(2, (sin(LFOfreq*2.0*PI*LFOphase)*LFOrange)/12);
+  LFOfactor = pow(2, (sin(LFOfreq*2.0*PI*LFOphase)*LFOrange*biteSensor)/12);
   setOSC(bendfactor < 1);
 }
 
 void myNoteOn(byte channel, byte note, byte velocity) {
-  Serial.print("Note On, ch=");
+  /* Serial.print("Note On, ch=");
   Serial.print(channel, DEC);
   Serial.print(", note=");
   Serial.print(note, DEC);
   Serial.print(", velocity=");
-  Serial.println(velocity, DEC);
+  Serial.println(velocity, DEC); */
   if (note == 99) toggleTransposition();
   freq = 440.0 * powf(2.0, (float)(note - 69 + transposition[transp]) * 0.08333333);
   setOSC(bendfactor < 1);
 }
 
 void myAfterTouch(byte channel, byte pressure) {
-  Serial.print("Aftertouch, ch=");
+/*Serial.print("Aftertouch, ch=");
   Serial.print(channel, DEC);
-  Serial.print(", pressure=");
+  Serial.print(", pressure="); */
   float pressVal = (float)pressure / 127.00;
-  Serial.println(pow(pressVal, 3), 3);
+  // Serial.println(pow(pressVal, 3), 3);
   breath.amplitude(pow(pressVal, 3), 3);
   waveform1.pulseWidth(pressVal);
   waveform2.pulseWidth(pressVal);
@@ -148,13 +151,25 @@ void myAfterTouch(byte channel, byte pressure) {
 }
 
 void myPitchChange(byte channel, int pitch) {
-  Serial.print("Pitch Change, ch=");
+/*Serial.print("Pitch Change, ch=");
   Serial.print(channel, DEC);
   Serial.print(", pitch=");
-  Serial.println(pitch, DEC);
+  Serial.println(pitch, DEC); */
   float bendF = (((float)pitch / 8192) * bendrange);
   bendfactor = pow(2, bendF / 12);
   setOSC(bendfactor < 1);
+}
+
+void myControlChange(byte channel, byte control, byte value) {
+/*Serial.print("Control Change, ch=");
+  Serial.print(channel, DEC);
+  Serial.print(", control=");
+  Serial.print(control, DEC);
+  Serial.print(", value=");
+  Serial.println(value, DEC); */
+  if (control == 1) {
+    biteSensor = float(value) / 127.0;
+  }
 }
 
 void setOSC(bool voicing) {
