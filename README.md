@@ -3,6 +3,7 @@ This is a small patch for using the **AKAI EWI-USB** on the go with a **Teensy 4
 It uses the Teensy's internal Audio Library ( https://github.com/PaulStoffregen/Audio ) to model an analog synth lead patch.
 It features:
 * four oscillators (waveform: variable triangle) in unison or voiced
+* 10Hz LFO->pitch controlled by bite sensor pressure
 * voltage controlled amplifier and filter reacting to breath control
 * two semitones pitchbend on positive pitchwheel input
 * a cool fourths voicing (4th down, 9th down, octave down) on negative pitchwheel input
