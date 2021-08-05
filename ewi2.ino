@@ -122,7 +122,9 @@ void LFOUpdate() {
     LFOphase -= 1;  
   }
   LFOfactor = pow(2, (sin(LFOfreq*2.0*PI*LFOphase)*LFOrange*biteSensor)/12);
-  setOSC(bendfactor < 1);
+  if (LFOfactor > 1) {
+    setOSC(bendfactor < 1);
+  }
 }
 
 void myNoteOn(byte channel, byte note, byte velocity) {
