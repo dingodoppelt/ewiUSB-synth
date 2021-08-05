@@ -79,10 +79,10 @@ void setup() {
   midi1.setHandleControlChange(myControlChange);
   float bereich = 2.0;
   float inc = bereich / 32769.0;
-  float j = bereich / 2 - bereich;
+  float j = bereich / (bereich / 2) - bereich;
   for (int i = 0; i <= 32768; i++) {
-    //waveshape[i] = j/abs(j+1.0);
-    waveshape[i] = tanh(j);
+    waveshape[i] = j/abs(j+1.0);
+    //waveshape[i] = tanh(j);
     j = j + inc;
   }
   waveshape1.shape(waveshape, 32769);
