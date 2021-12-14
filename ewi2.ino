@@ -54,6 +54,7 @@ short delayBufferL[128 * AUDIO_BLOCK_SAMPLES];
 short delayBufferR[144 * AUDIO_BLOCK_SAMPLES];
 int bendrange = 2;
 float bendfactor = 1.0;
+float detunefactor[3] = { 0.999, 0.997, 1.002 };
 int transposition[7] = { 0, -2, 10, 3, -9, 12, -12 };
 int transp = 0;
 float LFOphase = 0.0;
@@ -81,8 +82,8 @@ void setup() {
   float inc = bereich / 32769.0;
   float j = bereich / (bereich / 2) - bereich;
   for (int i = 0; i <= 32768; i++) {
-    waveshape[i] = j/abs(j+1.0);
-    //waveshape[i] = tanh(j);
+    //waveshape[i] = j/abs(j+1.0);
+    waveshape[i] = tanh(j);
     j = j + inc;
   }
   waveshape1.shape(waveshape, 32769);
@@ -177,9 +178,9 @@ void myControlChange(byte channel, byte control, byte value) {
 void setOSC(bool voicing) {
   if (voicing == 0) {
     waveform1.frequency(freq * bendfactor * LFOfactor);
-    waveform2.frequency(freq * bendfactor * LFOfactor);
-    waveform3.frequency(freq * bendfactor * LFOfactor);
-    waveform4.frequency(freq * bendfactor * LFOfactor);
+    waveform2.frequency(freq * bendfactor * LFOfactor * detunefactor[0]);
+    waveform3.frequency(freq * bendfactor * LFOfactor * detunefactor[1]);
+    waveform4.frequency(freq * bendfactor * LFOfactor * detunefactor[2]);
   } else {
     waveform1.frequency(freq);
     waveform2.frequency(freq * 0.749153538438); // perfect fourth down
