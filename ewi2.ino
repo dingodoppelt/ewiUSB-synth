@@ -1,10 +1,5 @@
 #include "USBHost_t36.h"
-
 #include <Audio.h>
-#include <Wire.h>
-#include <SPI.h>
-#include <SD.h>
-#include <SerialFlash.h>
 
 // GUItool: begin automatically generated code
 AudioSynthWaveform       waveform1;      //xy=1783.1943359375,2173.8887939453125
@@ -20,7 +15,6 @@ AudioEffectChorus        chorus2;        //xy=2523.0828857421875,2441.0836181640
 AudioEffectChorus        chorus1;        //xy=2525.0828857421875,2399.0836181640625
 AudioMixer4              mixerL;         //xy=2655.0828857421875,2366.0836181640625
 AudioMixer4              mixerR;         //xy=2666.0828857421875,2524.0836181640625
-//AudioOutputUSB           usb1;           //xy=2875.9442138671875,2433.3887939453125
 AudioOutputI2S           i2s1;           //xy=2876.6942138671875,2353.8887939453125
 AudioConnection          patchCord1(waveform1, 0, mixer2, 0);
 AudioConnection          patchCord2(waveform2, 0, mixer2, 1);
@@ -38,9 +32,7 @@ AudioConnection          patchCord13(filter1, 0, mixerR, 0);
 AudioConnection          patchCord14(chorus2, 0, mixerR, 1);
 AudioConnection          patchCord15(chorus1, 0, mixerL, 1);
 AudioConnection          patchCord16(mixerL, 0, i2s1, 0);
-//AudioConnection          patchCord17(mixerL, 0, usb1, 0);
 AudioConnection          patchCord18(mixerR, 0, i2s1, 1);
-//AudioConnection          patchCord19(mixerR, 0, usb1, 1);
 AudioControlSGTL5000     sgtl5000_1;     //xy=2457.0833740234375,2222.0836181640625
 // GUItool: end automatically generated code
 
@@ -48,7 +40,7 @@ AudioControlSGTL5000     sgtl5000_1;     //xy=2457.0833740234375,2222.0836181640
 
 USBHost myusb;
 MIDIDevice midi1(myusb);
-float freq = 440;
+float freq, currFreq = 440;
 float waveshape[32769];
 short delayBufferL[128 * AUDIO_BLOCK_SAMPLES];
 short delayBufferR[144 * AUDIO_BLOCK_SAMPLES];
@@ -66,7 +58,6 @@ float Fs = 1e3;
 float biteSensor = 0.0;
 float glideOffset = 1.0;
 float glideTime = 20.0;
-float currFreq = 440.0;
 
 void setup() {
   float amp_gain = 1.0;
