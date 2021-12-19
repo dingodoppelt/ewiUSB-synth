@@ -64,6 +64,9 @@ float LFOfactor = 1.0;
 int LFOrange = 3;
 float Fs = 1e3;
 float biteSensor = 0.0;
+float glideOffset = 1.0;
+float glideTime = 20.0;
+float currFreq = 440.0;
 
 void setup() {
   float amp_gain = 1.0;
@@ -110,7 +113,10 @@ void setup() {
 
 void loop() {
   midi1.read();
-  LFOUpdate();  
+  LFOUpdate();
+  if (glideOffset != 1.0) {
+    updateGlide(); 
+  }
 }
 
 void LFOUpdate() {
@@ -128,15 +134,19 @@ void LFOUpdate() {
   }
 }
 
+void updateGlide () {
+  glideOffset = glideOffset - (glideOffset - 1) / glideTime;
+  setOSC(bendfactor < 1);
+}
+
 void myNoteOn(byte channel, byte note, byte velocity) {
   if (note == 99) toggleTransposition();
   freq = 440.0 * powf(2.0, (float)(note - 69 + transposition[transp]) * 0.08333333);
-  setOSC(bendfactor < 1);
+  glideOffset = currFreq/freq;
 }
 
 void myAfterTouch(byte channel, byte pressure) {
   float pressVal = (float)pressure / 127.00;
-  // Serial.println(pow(pressVal, 3), 3);
   breath.amplitude(pow(pressVal, 3), 3);
   waveform1.pulseWidth(pressVal);
   waveform2.pulseWidth(pressVal);
@@ -157,16 +167,17 @@ void myControlChange(byte channel, byte control, byte value) {
 }
 
 void setOSC(bool voicing) {
+  currFreq = freq * glideOffset * bendfactor * LFOfactor;
   if (voicing == 0) {
-    waveform1.frequency(freq * bendfactor * LFOfactor);
-    waveform2.frequency(freq * bendfactor * LFOfactor * detunefactor[0]);
-    waveform3.frequency(freq * bendfactor * LFOfactor * detunefactor[1]);
-    waveform4.frequency(freq * bendfactor * LFOfactor * detunefactor[2]);
+    waveform1.frequency(currFreq);
+    waveform2.frequency(currFreq * detunefactor[0]);
+    waveform3.frequency(currFreq * detunefactor[1]);
+    waveform4.frequency(currFreq * detunefactor[2]);
   } else {
-    waveform1.frequency(freq);
-    waveform2.frequency(freq * 0.749153538438); // perfect fourth down
-    waveform3.frequency(freq * 0.561231024154); // major ninth down
-    waveform4.frequency(freq / 2);              // octave down
+    waveform1.frequency(currFreq);
+    waveform2.frequency(currFreq * 0.749153538438); // perfect fourth down
+    waveform3.frequency(currFreq * 0.561231024154); // major ninth down
+    waveform4.frequency(currFreq / 2);              // octave down
   }
 }
 
