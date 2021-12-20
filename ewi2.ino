@@ -157,13 +157,14 @@ void myControlChange(byte channel, byte control, byte value) {
 }
 
 void setOSC(bool voicing) {
-  currFreq = freq * glideOffset * bendfactor * LFOfactor;
   if (voicing == 0) {
+    currFreq = freq * glideOffset * bendfactor * LFOfactor;
     waveform1.frequency(currFreq);
     waveform2.frequency(currFreq * detunefactor[0]);
     waveform3.frequency(currFreq * detunefactor[1]);
     waveform4.frequency(currFreq * detunefactor[2]);
   } else {
+    currFreq = freq * glideOffset * LFOfactor;
     waveform1.frequency(currFreq);
     waveform2.frequency(currFreq * 0.749153538438); // perfect fourth down
     waveform3.frequency(currFreq * 0.561231024154); // major ninth down
