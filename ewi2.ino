@@ -92,10 +92,10 @@ void setup() {
   mixerL.gain(1, 0.15);
   mixerR.gain(0, 0.5);
   mixerR.gain(1, 0.15);
-  waveform1.begin(1.0, freq, WAVEFORM_TRIANGLE_VARIABLE);
-  waveform2.begin(1.0, freq, WAVEFORM_TRIANGLE_VARIABLE);
-  waveform3.begin(1.0, freq, WAVEFORM_TRIANGLE_VARIABLE);
-  waveform4.begin(1.0, freq, WAVEFORM_TRIANGLE_VARIABLE);
+  waveform1.begin(1.0, freq, WAVEFORM_BANDLIMIT_TRIANGLE_VARIABLE);
+  waveform2.begin(1.0, freq, WAVEFORM_BANDLIMIT_TRIANGLE_VARIABLE);
+  waveform3.begin(1.0, freq, WAVEFORM_BANDLIMIT_TRIANGLE_VARIABLE);
+  waveform4.begin(1.0, freq, WAVEFORM_BANDLIMIT_TRIANGLE_VARIABLE);
   chorus1.begin(delayBufferL, 24 * AUDIO_BLOCK_SAMPLES, 2);
   chorus2.begin(delayBufferR, 16 * AUDIO_BLOCK_SAMPLES, 2);
 }
@@ -138,10 +138,10 @@ void myNoteOn(byte channel, byte note, byte velocity) {
 void myAfterTouch(byte channel, byte pressure) {
   float pressVal = (float)pressure / 127.00;
   breath.amplitude(pow(pressVal, 3), 3);
-  waveform1.pulseWidth(pressVal);
-  waveform2.pulseWidth(pressVal);
-  waveform3.pulseWidth(pressVal);
-  waveform4.pulseWidth(pressVal);
+  waveform1.varSawOsc.SetPW(pressVal);
+  waveform2.varSawOsc.SetPW(pressVal);
+  waveform3.varSawOsc.SetPW(pressVal);
+  waveform4.varSawOsc.SetPW(pressVal);
 }
 
 void myPitchChange(byte channel, int pitch) {
@@ -159,16 +159,16 @@ void myControlChange(byte channel, byte control, byte value) {
 void setOSC(bool voicing) {
   if (voicing == 0) {
     currFreq = freq * glideOffset * bendfactor * LFOfactor;
-    waveform1.frequency(currFreq);
-    waveform2.frequency(currFreq * detunefactor[0]);
-    waveform3.frequency(currFreq * detunefactor[1]);
-    waveform4.frequency(currFreq * detunefactor[2]);
+    waveform1.varSawOsc.SetFreq(currFreq);
+    waveform2.varSawOsc.SetFreq(currFreq * detunefactor[0]);
+    waveform3.varSawOsc.SetFreq(currFreq * detunefactor[1]);
+    waveform4.varSawOsc.SetFreq(currFreq * detunefactor[2]);
   } else {
     currFreq = freq * glideOffset * LFOfactor;
-    waveform1.frequency(currFreq);
-    waveform2.frequency(currFreq * 0.749153538438); // perfect fourth down
-    waveform3.frequency(currFreq * 0.561231024154); // major ninth down
-    waveform4.frequency(currFreq / 2);              // octave down
+    waveform1.varSawOsc.SetFreq(currFreq);
+    waveform2.varSawOsc.SetFreq(currFreq * 0.749153538438); // perfect fourth down
+    waveform3.varSawOsc.SetFreq(currFreq * 0.561231024154); // major ninth down
+    waveform4.varSawOsc.SetFreq(currFreq / 2);              // octave down
   }
 }
 
